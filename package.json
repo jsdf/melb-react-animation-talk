@@ -1,0 +1,28 @@
+{
+  "name": "melb-react-vis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "James Friend <james@jsdf.co> (http://jsdf.co/)",
+  "license": "ISC",
+  "dependencies": {
+    "babel-core": "^5.8.34",
+    "babel-loader": "^5.3.3",
+    "babel-plugin-react-transform": "^1.1.1",
+    "express": "^4.13.3",
+    "lodash": "^3.10.1",
+    "react": "^0.14.2",
+    "react-dom": "^0.14.2",
+    "react-motion": "^0.3.1",
+    "react-transform-catch-errors": "^1.0.0",
+    "react-transform-hmr": "^1.0.1",
+    "redbox-react": "^1.1.1",
+    "webpack": "^1.12.4",
+    "webpack-dev-middleware": "^1.2.0",
+    "webpack-hot-middleware": "^2.5.0"
+  }
+}
