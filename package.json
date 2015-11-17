@@ -13,6 +13,7 @@
     "babel-core": "^5.8.34",
     "babel-loader": "^5.3.3",
     "babel-plugin-react-transform": "^1.1.1",
+    "d3": "^3.5.9",
     "express": "^4.13.3",
     "lodash": "^3.10.1",
     "react": "^0.14.2",

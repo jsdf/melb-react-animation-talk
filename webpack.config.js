@@ -1,15 +1,20 @@
 var path = require('path');
 var webpack = require('webpack');
 
-module.exports = {
-  devtool: 'eval',
-  entry: [
+var entries = {};
+['1','2','3','4'].forEach(n => 
+  entries[n] = [
     'webpack-hot-middleware/client',
-    './src/index'
-  ],
+    './demos/'+n+'/index',
+  ]
+);
+
+module.exports = {
+  // devtool: 'eval',
+  entry: entries,
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: "[name].js",
     publicPath: '/static/'
   },
   plugins: [
@@ -20,7 +25,7 @@ module.exports = {
     loaders: [{
       test: /\.js$/,
       loaders: ['babel'],
-      include: path.join(__dirname, 'src')
+      include: path.join(__dirname, 'demos')
     }]
   }
 };
