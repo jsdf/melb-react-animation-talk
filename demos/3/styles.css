@@ -1,0 +1,14 @@
+.container {
+  position: relative;
+  background: #3498DB;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  background: #3498DB;
+  color: #ECF0F1;
+}

@@ -15,17 +15,23 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
     filename: "[name].js",
-    publicPath: '/static/'
+    publicPath: '/static/',
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin()
+    new webpack.NoErrorsPlugin(),
   ],
   module: {
-    loaders: [{
-      test: /\.js$/,
-      loaders: ['babel'],
-      include: path.join(__dirname, 'demos')
-    }]
-  }
+    loaders: [
+      {
+        test: /\.css$/,
+        loader: "style-loader!css-loader?modules",
+      },
+      {
+        test: /\.js$/,
+        loaders: ['babel'],
+        include: path.join(__dirname, 'demos'),
+      }
+    ],
+  },
 };

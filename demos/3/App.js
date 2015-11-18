@@ -1,161 +1,112 @@
 import React, { Component } from 'react';
-import {TransitionMotion, spring, presets} from 'react-motion';
-import each from 'lodash/collection/each';
-import map from 'lodash/collection/map';
-import pairs from 'lodash/object/pairs';
+import {StaggeredMotion, spring, presets} from 'react-motion';
+import last from 'lodash/array/last';
+import range from 'lodash/utility/range';
+import classes from './styles.css'
 
-const CENTRE = 32;
-const MAX_POINTS = 12;
-
-const VASE_PATH = {
-  a: {type: 'M', x: 22, y: 44,},
-  b: {type: 'L', x: 24, y: 54,},
-  c: {type: 'L', x: 28, y: 54,},
-  d: {type: 'L', x: 34, y: 54,},
-  e: {type: 'L', x: 36, y: 44,},
-  f: {type: 'L', x: 40, y: 24,},
-  g: {type: 'L', x: 38, y: 16,},
-  h: {type: 'L', x: 34, y: 12,},
-  i: {type: 'L', x: 38, y: 8,},
-  j: {type: 'L', x: 20, y: 8,},
-  k: {type: 'L', x: 24, y: 12,},
-  l: {type: 'L', x: 20, y: 16,},
-  m: {type: 'L', x: 18, y: 24,},
-};
-
-const HEAD_PATH = {
-  a: {type: 'M', x: 22, y: 36,},
-  b: {type: 'L', x: 22, y: 44,},
-  c: {type: 'L', x: 20, y: 54,},
-  d: {type: 'L', x: 24, y: 54,},
-  e: {type: 'L', x: 32, y: 48,},
-  f: {type: 'L', x: 34, y: 42,},
-  g: {type: 'L', x: 36, y: 28,},
-  h: {type: 'L', x: 40, y: 8,},
-  i: {type: 'L', x: 34, y: 6,},
-  j: {type: 'L', x: 30, y: 12,},
-  k: {type: 'L', x: 30, y: 20,},
-  l: {type: 'L', x: 20, y: 30,},
-  m: {type: 'L', x: 24, y: 34,},
-};
+const NUM_ITEMS = 10;
+const ITEM_HEIGHT = 40;
 
 export class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      drawing: 'a',
-      pointsVisible: MAX_POINTS,
-      preset: Object.keys(presets)[0],
+      open: false,
+      stiffness: 120,
+      damping: 30,
     };
   }
 
-  toggleDrawing = () => {
+  toggleOpen = () => {
     this.setState({
-      drawing: this.state.drawing == 'vase' ? 'head' : 'vase',
+      open: !this.state.open,
     });
   }
 
-  addPoint = () => {
-    this.setState({
-      pointsVisible: this.state.pointsVisible + 1,
+  changeStiffness = e => {
+    this.setState({stiffness: parseInt(e.target.value, 10)});
+  }
+
+  changeDamping = e => {
+    this.setState({damping: parseInt(e.target.value, 10)});
+  }
+
+  nextStyles = prevStyles => {
+    const opening = this.state.open;
+    const springConfig = [this.state.stiffness, this.state.damping];
+    const lastIndex = NUM_ITEMS - 1;
+
+    return prevStyles.map((_, i) => {
+      const orderedIndex = opening ? i : lastIndex - i;
+      const finalPosition = opening ? lastIndex - orderedIndex : 0;
+      const finalOpacity = opening ? 2 : 1;
+
+      if (orderedIndex === 0) { // leader
+        return {
+          y: spring(finalPosition, springConfig),
+          opacity: spring(finalOpacity, springConfig),
+        };
+      } else {
+        const nextAhead = prevStyles[orderedIndex - 1];
+
+        return {
+          y: spring(Math.min(finalPosition, nextAhead.y || 0), springConfig),
+          opacity: spring(nextAhead.opacity, springConfig),
+        };
+      }
     });
-  }
-
-  removePoint = () => {
-    this.setState({
-      pointsVisible: this.state.pointsVisible - 1,
-    });
-  }
-
-  changePreset = e => {
-    this.setState({preset: e.target.value});
-  }
-
-  getStyles() {
-    const {pointsVisible} = this.state;
-    const path = this.state.drawing == 'vase' ? VASE_PATH : HEAD_PATH;
-    const pathPoints = pairs(path).slice(0, 1+pointsVisible);
-
-    const styles = {};
-    each(pathPoints, ([key, {type, x, y}]) => {
-      styles[key] = {
-        type,
-        x: spring(x, presets[this.state.preset]),
-        y: spring(y, presets[this.state.preset]),
-      };
-    });
-    return styles;
-  }
-
-  willEnter = (key, {type}) => {
-    return {
-      type,
-      x: spring(CENTRE, presets[this.state.preset]),
-      y: spring(CENTRE, presets[this.state.preset]),
-    };
-  }
-
-  willLeave = (key, {type}) => {
-    return {
-      type,
-      x: spring(CENTRE, presets[this.state.preset]),
-      y: spring(CENTRE, presets[this.state.preset]),
-    };
-  }
-
-
-  buildPath(interpolatedStyles) {
-    return map(interpolatedStyles, ({type, x, y}) => `${type}${x} ${y}`).join(' ') + ' Z';
   }
 
   renderControls() {
     return (
       <div>
-        <button onClick={this.toggleDrawing}>
-          show {this.state.drawing == 'vase' ? 'head' : 'vase'}
+        <button onClick={this.toggleOpen}>
+          {this.state.open ? 'close' : 'open'}
         </button>
-        <button
-          onClick={this.addPoint}
-          disabled={this.state.pointsVisible == MAX_POINTS}
-        >
-          +
-        </button>
-        <button
-          onClick={this.removePoint}
-          disabled={this.state.pointsVisible == 0}
-        >
-          -
-        </button>
-        <select
-          value={this.state.preset}
-          onChange={this.changePreset}
-        >
-          {map(presets, (preset, name) => <option key={name} value={name}>{name} {JSON.stringify(preset)}</option>)}
-        </select>
+        <input
+          type="range"
+          min={0}
+          max={500}
+          value={this.state.stiffness}
+          onChange={this.changeStiffness}
+        />
+        <input
+          type="range"
+          min={0}
+          max={500}
+          value={this.state.damping}
+          onChange={this.changeDamping}
+        />
       </div>
     );
   }
 
   renderDrawing() {
     return (
-      <TransitionMotion
-        styles={this.getStyles()}
-        willEnter={this.willEnter}
-        willLeave={this.willLeave}>
-        {
-          interpolatedStyles =>
-            <svg
-              viewBox='0 0 64 64'
-              width='256'
-              height='256'
-              fill='currentcolor'
-            >
-              <path
-                d={this.buildPath(interpolatedStyles)}
-              />
-            </svg>
+      <StaggeredMotion
+        defaultStyles={range(0, NUM_ITEMS).map(() => ({y: 0, opacity: 1}))}
+        styles={this.nextStyles}
+      >
+        {interpolatedStyles =>
+          <div className={classes.container} style={{height: (interpolatedStyles[0].y + 1) * ITEM_HEIGHT}}>
+            {
+              interpolatedStyles.map((itemStyle, i) =>
+                <div
+                  className={classes.item}
+                  key={i}
+                  style={{
+                    transform: `translateY(${itemStyle.y * ITEM_HEIGHT}px)`,
+                    height: ITEM_HEIGHT,
+                    opacity: itemStyle.opacity - 1,
+                  }}
+                >
+                 hello
+                </div>
+              )
+            }
+          </div>
         }
-      </TransitionMotion>
+      </StaggeredMotion>
     );
   }
 

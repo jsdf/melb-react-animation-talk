@@ -13,6 +13,7 @@
     "babel-core": "^5.8.34",
     "babel-loader": "^5.3.3",
     "babel-plugin-react-transform": "^1.1.1",
+    "css-loader": "^0.23.0",
     "d3": "^3.5.9",
     "express": "^4.13.3",
     "lodash": "^3.10.1",
@@ -22,6 +23,7 @@
     "react-transform-catch-errors": "^1.0.0",
     "react-transform-hmr": "^1.0.1",
     "redbox-react": "^1.1.1",
+    "style-loader": "^0.13.0",
     "webpack": "^1.12.4",
     "webpack-dev-middleware": "^1.2.0",
     "webpack-hot-middleware": "^2.5.0"
