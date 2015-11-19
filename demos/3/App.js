@@ -65,20 +65,26 @@ export class App extends Component {
         <button onClick={this.toggleOpen}>
           {this.state.open ? 'close' : 'open'}
         </button>
-        <input
-          type="range"
-          min={0}
-          max={MAX_STIFFNESS}
-          value={this.state.stiffness}
-          onChange={this.changeStiffness}
-        />
-        <input
-          type="range"
-          min={0}
-          max={MAX_DAMPING}
-          value={this.state.damping}
-          onChange={this.changeDamping}
-        />
+        <label className={classes.inputBlock}>
+          stiffness
+          <input
+            type="range"
+            min={1}
+            max={MAX_STIFFNESS}
+            value={this.state.stiffness}
+            onChange={this.handleChangeStiffness}
+          />
+        </label>
+        <label className={classes.inputBlock}>
+          damping
+          <input
+            type="range"
+            min={1}
+            max={MAX_DAMPING}
+            value={this.state.damping}
+            onChange={this.handleChangeDamping}
+          />
+        </label>
       </div>
     );
   }

@@ -8,36 +8,8 @@ import button from '../button.css';
 
 const ITEM_HEIGHT = 120;
 const SPRING_CONFIG = [19, 30];
-
-const ItemTransition = {
-  willEnter(key, style) {
-    return {
-      ...style,
-      opacity: spring(0),
-      height: spring(0),
-    };
-  },
-
-  willLeave(key, style) {
-    return {
-      ...style,
-      opacity: spring(0, SPRING_CONFIG),
-      height: spring(0, SPRING_CONFIG),
-    };
-  },
-
-  getStyles(items) {
-    const styles = {};
-    items.forEach((item) => {
-      styles[String(item.id)] = {
-        item,
-        opacity: spring(2, SPRING_CONFIG),
-        height: spring(ITEM_HEIGHT, SPRING_CONFIG),
-      };
-    });
-    return styles;
-  },
-};
+const MAX_STIFFNESS = 500;
+const MAX_DAMPING = 150;
 
 export class App extends Component {
   constructor(props) {
@@ -45,7 +17,49 @@ export class App extends Component {
 
     this.state = {
       items: [],
+      stiffness: 380,
+      damping: 14,
     }
+  }
+
+  willEnter = (key, style) => {
+    return {
+      ...style,
+      opacity: spring(0),
+      height: spring(0),
+    };
+  }
+
+  willLeave = (key, style) => {
+    const springConfig = [this.state.stiffness, this.state.damping];
+
+    return {
+      ...style,
+      opacity: spring(0, springConfig),
+      height: spring(0, springConfig),
+    };
+  }
+
+  getStyles(items) {
+    const springConfig = [this.state.stiffness, this.state.damping];
+
+    const styles = {};
+    items.forEach((item) => {
+      styles[String(item.id)] = {
+        item,
+        opacity: spring(2, springConfig),
+        height: spring(ITEM_HEIGHT, springConfig),
+      };
+    });
+    return styles;
+  }
+
+  handleChangeStiffness = e => {
+    this.setState({stiffness: parseInt(e.target.value, 10)});
+  }
+
+  handleChangeDamping = e => {
+    this.setState({damping: parseInt(e.target.value, 10)});
   }
 
   handleRemoveItem = (id) => {
@@ -61,10 +75,42 @@ export class App extends Component {
     });
   }
 
+  renderControls() {
+    return (
+      <div>
+        <button onClick={this.handleAddItem} className={button.small}>
+         Add item
+        </button>
+        <label className={classes.inputBlock}>
+          stiffness
+          <input
+            type="range"
+            min={1}
+            max={MAX_STIFFNESS}
+            value={this.state.stiffness}
+            onChange={this.handleChangeStiffness}
+          />
+        </label>
+        <label className={classes.inputBlock}>
+          damping
+          <input
+            type="range"
+            min={1}
+            max={MAX_DAMPING}
+            value={this.state.damping}
+            onChange={this.handleChangeDamping}
+          />
+        </label>
+      </div>
+    );
+  }
+
   renderItem = ({item, opacity, height}) => {
+    const handleRemove = () => this.handleRemoveItem(item.id);
+
     return (
       <div style={{opacity, height}} key={item.id}>
-        <button onClick={() => this.handleRemoveItem(item.id)} className={button.small}>&times;</button>
+        <button onClick={handleRemove} className={classes.closeButton}>&times;</button>
         {item.text}
       </div>
     );
@@ -74,21 +120,19 @@ export class App extends Component {
     return (
       <div className={classes.outer}>
         <TransitionMotion
-          styles={ItemTransition.getStyles(this.state.items)}
-          willEnter={ItemTransition.willEnter}
-          willLeave={ItemTransition.willLeave}
+          styles={this.getStyles(this.state.items)}
+          willEnter={this.willEnter}
+          willLeave={this.willLeave}
         >
           {
             (intepolatedStyles) => (
-              <div>
+              <div className={classes.items}>
                 {map(intepolatedStyles, this.renderItem)}
               </div>
             )
           }
         </TransitionMotion>
-        <button onClick={this.handleAddItem} className={button.small}>
-         Add item
-        </button>
+        {this.renderControls()}
       </div>
     );
   }
