@@ -5,18 +5,6 @@ import map from 'lodash/collection/map';
 import range from 'lodash/utility/range';
 import classes from './styles.css';
 
-function reinsert(arr, from, to) {
-  const _arr = arr.slice(0);
-  const val = _arr[from];
-  _arr.splice(from, 1);
-  _arr.splice(to, 0, val);
-  return _arr;
-}
-
-function clamp(n, min, max) {
-  return Math.max(Math.min(n, max), min);
-}
-
 const springConfig = [300, 50];
 const itemsCount = 4;
 
@@ -49,12 +37,13 @@ export class App extends Component {
 
   handleMouseMove = ({pageY}) => {
     const {isPressed, delta, order, lastPressed} = this.state;
-    if (isPressed) {
-      const mouse = pageY - delta;
-      const row = clamp(Math.round(mouse / 100), 0, itemsCount - 1);
-      const newOrder = reinsert(order, order.indexOf(lastPressed), row);
-      this.setState({mouse: mouse, order: newOrder});
-    }
+    if (!isPressed) return;
+
+    const mouse = pageY - delta;
+    const row = clamp(Math.round(mouse / 100), 0, itemsCount - 1);
+    const newOrder = reinsert(order, order.indexOf(lastPressed), row);
+
+    this.setState({mouse: mouse, order: newOrder});
   }
 
   handleMouseUp = () => {
@@ -110,4 +99,16 @@ export class App extends Component {
       </div>
     );
   }
+}
+
+function reinsert(arr, from, to) {
+  const _arr = arr.slice(0);
+  const val = _arr[from];
+  _arr.splice(from, 1);
+  _arr.splice(to, 0, val);
+  return _arr;
+}
+
+function clamp(n, min, max) {
+  return Math.max(Math.min(n, max), min);
 }

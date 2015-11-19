@@ -38,3 +38,8 @@
   margin-top: 5px;
   position: relative;
 }
+.small {
+  composes: normal;
+  font-size: 1em;
+  position: relative;
+}

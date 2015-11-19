@@ -2,7 +2,7 @@ var path = require('path');
 var webpack = require('webpack');
 
 var entries = {};
-['1','2','3','4'].forEach(function(n) {
+['1','2','3','4', '5'].forEach(function(n) {
   entries[n] = [
     'webpack-hot-middleware/client',
     './demos/'+n+'/index',
