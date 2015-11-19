@@ -3,14 +3,17 @@
   <head>
     <title>React Motion</title>
     <style>
-      * {
-        font-family: Avenir, sans-serif;
-      }
-      button {
+      button, input, select {
         cursor: pointer;
+        font-size: 1.2em;
+        -webkit-appearance: none;
+      }
+      pre {
+        margin: 0;
       }
       body {
-        background: #2C3E50;
+        font-family: Avenir, sans-serif;
+        margin: auto;
       }
     </style>
   </head>
@@ -18,7 +21,12 @@
     <div id='root'>
     </div>
     <script type="text/javascript">
-      document.write('<script src="/static/'+location.search.slice(1)+'.js"></scr'+'ipt>')
+      var number = location.search.slice(1);
+      if (number) {
+        document.write('<script src="/static/'+number+'.js"></scr'+'ipt>')
+      } else {
+        [1,2,3,4].forEach(function(n) { document.write('<a href="/?'+n+'">demo '+n+'</a><br>'); });
+      }
     </script>
   </body>
 </html>

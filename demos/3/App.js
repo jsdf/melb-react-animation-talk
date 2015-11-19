@@ -6,6 +6,8 @@ import classes from './styles.css'
 
 const NUM_ITEMS = 10;
 const ITEM_HEIGHT = 40;
+const MAX_STIFFNESS = 500;
+const MAX_DAMPING = 150;
 
 export class App extends Component {
   constructor(props) {
@@ -66,14 +68,14 @@ export class App extends Component {
         <input
           type="range"
           min={0}
-          max={500}
+          max={MAX_STIFFNESS}
           value={this.state.stiffness}
           onChange={this.changeStiffness}
         />
         <input
           type="range"
           min={0}
-          max={500}
+          max={MAX_DAMPING}
           value={this.state.damping}
           onChange={this.changeDamping}
         />

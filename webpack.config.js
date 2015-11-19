@@ -2,12 +2,12 @@ var path = require('path');
 var webpack = require('webpack');
 
 var entries = {};
-['1','2','3','4'].forEach(n => 
+['1','2','3','4'].forEach(function(n) {
   entries[n] = [
     'webpack-hot-middleware/client',
     './demos/'+n+'/index',
-  ]
-);
+  ];
+});
 
 module.exports = {
   // devtool: 'eval',

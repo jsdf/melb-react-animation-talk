@@ -1,15 +1,12 @@
 import React, { Component } from 'react';
 import d3 from 'd3';
-import cloneDeep from 'lodash/lang/cloneDeep';
 import each from 'lodash/collection/each';
 
 export default class D3Force extends Component {
   constructor(props) {
     super(props);
 
-    var {width, height, charge, linkDistance, linkStrength, alpha} = props;
-    var nodes = cloneDeep(props.nodes);
-    var links = cloneDeep(props.links);
+    var {width, height, charge, linkDistance, linkStrength, alpha, nodes, links} = props;
 
     var force = d3.layout.force()
       .size([width, height])
@@ -17,7 +14,7 @@ export default class D3Force extends Component {
       .linkStrength(linkStrength)
       .linkDistance(linkDistance)
       .alpha(alpha)
-      .on("tick", this.tick);
+      .on("tick", this.handleTick);
 
     // todo
     var drag = force.drag()
@@ -35,13 +32,11 @@ export default class D3Force extends Component {
     force.start();
   }
 
-  componentDidUpdate() {
-    each(this.state.nodes || [], (node, i) => {
-      Object.assign(node, this.props.nodesProperties[i]);
-    });
+  resume() {
+    this.state.force.resume();
   }
 
-  tick = (e) => {
+  handleTick = (e) => {
     if (this.props.onTick) this.props.onTick(e, this.state.nodes);
     this.forceUpdate();
   }

@@ -3,6 +3,9 @@ import {TransitionMotion, spring, presets} from 'react-motion';
 import each from 'lodash/collection/each';
 import map from 'lodash/collection/map';
 import pairs from 'lodash/object/pairs';
+import classes from './styles.css';
+import buttonClasses from '../button.css';
+const {round} = Math;
 
 const CENTRE = 32;
 const MAX_POINTS = 12;
@@ -75,31 +78,36 @@ export class App extends Component {
     const {pointsVisible} = this.state;
     const path = this.state.drawing == 'vase' ? VASE_PATH : HEAD_PATH;
     const pathPoints = pairs(path).slice(0, 1+pointsVisible);
+    const springConfig = presets[this.state.preset];
 
     const styles = {};
     each(pathPoints, ([key, {type, x, y}]) => {
       styles[key] = {
         type,
-        x: spring(x, presets[this.state.preset]),
-        y: spring(y, presets[this.state.preset]),
+        x: spring(x, springConfig),
+        y: spring(y, springConfig),
       };
     });
     return styles;
   }
 
   willEnter = (key, {type}) => {
+    const springConfig = presets[this.state.preset];
+
     return {
       type,
-      x: spring(CENTRE, presets[this.state.preset]),
-      y: spring(CENTRE, presets[this.state.preset]),
+      x: spring(CENTRE, springConfig),
+      y: spring(CENTRE, springConfig),
     };
   }
 
   willLeave = (key, {type}) => {
+    const springConfig = presets[this.state.preset];
+
     return {
       type,
-      x: spring(CENTRE, presets[this.state.preset]),
-      y: spring(CENTRE, presets[this.state.preset]),
+      x: spring(CENTRE, springConfig),
+      y: spring(CENTRE, springConfig),
     };
   }
 
@@ -110,17 +118,22 @@ export class App extends Component {
 
   renderControls() {
     return (
-      <div>
-        <button onClick={this.toggleDrawing}>
+      <div className={classes.controls}>
+        <button
+          className={buttonClasses.normal}
+          onClick={this.toggleDrawing}
+        >
           show {this.state.drawing == 'vase' ? 'head' : 'vase'}
         </button>
         <button
+          className={buttonClasses.normal}
           onClick={this.addPoint}
           disabled={this.state.pointsVisible == MAX_POINTS}
         >
           +
         </button>
         <button
+          className={buttonClasses.normal}
           onClick={this.removePoint}
           disabled={this.state.pointsVisible == 0}
         >
@@ -136,6 +149,15 @@ export class App extends Component {
     );
   }
 
+  renderLog(interpolatedStyles) {
+    return (
+      <pre className={classes.log}>
+        {'x  y\n'}
+        {map(interpolatedStyles, s => `${round(s.x)} ${round(s.y)}\n`)}
+      </pre>
+    );
+  }
+
   renderDrawing() {
     return (
       <TransitionMotion
@@ -144,16 +166,19 @@ export class App extends Component {
         willLeave={this.willLeave}>
         {
           interpolatedStyles =>
-            <svg
-              viewBox='0 0 64 64'
-              width='256'
-              height='256'
-              fill='currentcolor'
-            >
-              <path
-                d={this.buildPath(interpolatedStyles)}
-              />
-            </svg>
+            <div className={classes.drawing}>
+              <svg
+                viewBox='0 0 64 64'
+                width='100%'
+                height='100%'
+                fill='currentcolor'
+              >
+                <path
+                  d={this.buildPath(interpolatedStyles)}
+                />
+              </svg>
+              {this.renderLog(interpolatedStyles)}
+            </div>
         }
       </TransitionMotion>
     );
@@ -161,7 +186,7 @@ export class App extends Component {
 
   render() {
     return (
-      <div>
+      <div className={classes.outer}>
         {this.renderControls()}
         {this.renderDrawing()}
       </div>

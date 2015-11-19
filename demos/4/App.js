@@ -1,169 +1,112 @@
 import React, { Component } from 'react';
-import {TransitionMotion, spring, presets} from 'react-motion';
+import {Motion, spring, presets} from 'react-motion';
 import each from 'lodash/collection/each';
 import map from 'lodash/collection/map';
-import pairs from 'lodash/object/pairs';
+import range from 'lodash/utility/range';
+import classes from './styles.css';
 
-const CENTRE = 32;
-const MAX_POINTS = 12;
+function reinsert(arr, from, to) {
+  const _arr = arr.slice(0);
+  const val = _arr[from];
+  _arr.splice(from, 1);
+  _arr.splice(to, 0, val);
+  return _arr;
+}
 
-const VASE_PATH = {
-  a: {type: 'M', x: 22, y: 44,},
-  b: {type: 'L', x: 24, y: 54,},
-  c: {type: 'L', x: 28, y: 54,},
-  d: {type: 'L', x: 34, y: 54,},
-  e: {type: 'L', x: 36, y: 44,},
-  f: {type: 'L', x: 40, y: 24,},
-  g: {type: 'L', x: 38, y: 16,},
-  h: {type: 'L', x: 34, y: 12,},
-  i: {type: 'L', x: 38, y: 8,},
-  j: {type: 'L', x: 20, y: 8,},
-  k: {type: 'L', x: 24, y: 12,},
-  l: {type: 'L', x: 20, y: 16,},
-  m: {type: 'L', x: 18, y: 24,},
-};
+function clamp(n, min, max) {
+  return Math.max(Math.min(n, max), min);
+}
 
-const HEAD_PATH = {
-  a: {type: 'M', x: 22, y: 36,},
-  b: {type: 'L', x: 22, y: 44,},
-  c: {type: 'L', x: 20, y: 54,},
-  d: {type: 'L', x: 24, y: 54,},
-  e: {type: 'L', x: 32, y: 48,},
-  f: {type: 'L', x: 34, y: 42,},
-  g: {type: 'L', x: 36, y: 28,},
-  h: {type: 'L', x: 40, y: 8,},
-  i: {type: 'L', x: 34, y: 6,},
-  j: {type: 'L', x: 30, y: 12,},
-  k: {type: 'L', x: 30, y: 20,},
-  l: {type: 'L', x: 20, y: 30,},
-  m: {type: 'L', x: 24, y: 34,},
-};
+const springConfig = [300, 50];
+const itemsCount = 4;
 
 export class App extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
-      drawing: 'a',
-      pointsVisible: MAX_POINTS,
-      preset: Object.keys(presets)[0],
+      delta: 0,
+      mouse: 0,
+      isPressed: false,
+      lastPressed: 0,
+      order: range(itemsCount),
     };
   }
 
-  toggleDrawing = () => {
+  componentDidMount() {
+    window.addEventListener('mousemove', this.handleMouseMove);
+    window.addEventListener('mouseup', this.handleMouseUp);
+  }
+
+  handleMouseDown = (pos, pressY, {pageY}) => {
     this.setState({
-      drawing: this.state.drawing == 'vase' ? 'head' : 'vase',
+      delta: pageY - pressY,
+      mouse: pressY,
+      isPressed: true,
+      lastPressed: pos,
     });
   }
 
-  addPoint = () => {
-    this.setState({
-      pointsVisible: this.state.pointsVisible + 1,
-    });
+  handleMouseMove = ({pageY}) => {
+    const {isPressed, delta, order, lastPressed} = this.state;
+    if (isPressed) {
+      const mouse = pageY - delta;
+      const row = clamp(Math.round(mouse / 100), 0, itemsCount - 1);
+      const newOrder = reinsert(order, order.indexOf(lastPressed), row);
+      this.setState({mouse: mouse, order: newOrder});
+    }
   }
 
-  removePoint = () => {
-    this.setState({
-      pointsVisible: this.state.pointsVisible - 1,
-    });
+  handleMouseUp = () => {
+    this.setState({isPressed: false, delta: 0});
   }
 
-  changePreset = e => {
-    this.setState({preset: e.target.value});
-  }
+  renderItem = (i) => {
+    const {mouse, isPressed, lastPressed, order} = this.state;
 
-  getStyles() {
-    const {pointsVisible} = this.state;
-    const path = this.state.drawing == 'vase' ? VASE_PATH : HEAD_PATH;
-    const pathPoints = pairs(path).slice(0, 1+pointsVisible);
-
-    const styles = {};
-    each(pathPoints, ([key, {type, x, y}]) => {
-      styles[key] = {
-        type,
-        x: spring(x, presets[this.state.preset]),
-        y: spring(y, presets[this.state.preset]),
+    const style = lastPressed === i && isPressed ?
+      {
+        scale: spring(1.1, springConfig),
+        shadow: spring(16, springConfig),
+        y: mouse,
+      } :
+      {
+        scale: spring(1, springConfig),
+        shadow: spring(1, springConfig),
+        y: spring(order.indexOf(i) * 100, springConfig),
       };
-    });
-    return styles;
-  }
 
-  willEnter = (key, {type}) => {
-    return {
-      type,
-      x: spring(CENTRE, presets[this.state.preset]),
-      y: spring(CENTRE, presets[this.state.preset]),
-    };
-  }
-
-  willLeave = (key, {type}) => {
-    return {
-      type,
-      x: spring(CENTRE, presets[this.state.preset]),
-      y: spring(CENTRE, presets[this.state.preset]),
-    };
-  }
-
-
-  buildPath(interpolatedStyles) {
-    return map(interpolatedStyles, ({type, x, y}) => `${type}${x} ${y}`).join(' ') + ' Z';
-  }
-
-  renderControls() {
     return (
-      <div>
-        <button onClick={this.toggleDrawing}>
-          show {this.state.drawing == 'vase' ? 'head' : 'vase'}
-        </button>
-        <button
-          onClick={this.addPoint}
-          disabled={this.state.pointsVisible == MAX_POINTS}
-        >
-          +
-        </button>
-        <button
-          onClick={this.removePoint}
-          disabled={this.state.pointsVisible == 0}
-        >
-          -
-        </button>
-        <select
-          value={this.state.preset}
-          onChange={this.changePreset}
-        >
-          {map(presets, (preset, name) => <option key={name} value={name}>{name} {JSON.stringify(preset)}</option>)}
-        </select>
-      </div>
-    );
-  }
-
-  renderDrawing() {
-    return (
-      <TransitionMotion
-        styles={this.getStyles()}
-        willEnter={this.willEnter}
-        willLeave={this.willLeave}>
-        {
-          interpolatedStyles =>
-            <svg
-              viewBox='0 0 64 64'
-              width='256'
-              height='256'
-              fill='currentcolor'
-            >
-              <path
-                d={this.buildPath(interpolatedStyles)}
-              />
-            </svg>
+      <Motion style={style} key={i}>
+        {({scale, shadow, y}) =>
+          <div
+            onMouseDown={(e) => this.handleMouseDown(i, y, e)}
+            className={classes.item}
+            style={{
+              boxShadow: `rgba(0, 0, 0, 0.2) 0px ${shadow}px ${2 * shadow}px 0px`,
+              transform: `translate3d(0, ${y}px, 0) scale(${scale})`,
+              WebkitTransform: `translate3d(0, ${y}px, 0) scale(${scale})`,
+              zIndex: i === lastPressed ? 99 : i,
+            }}>
+            {order.indexOf(i) + 1}
+          </div>
         }
-      </TransitionMotion>
+      </Motion>
     );
+  }
+
+  renderItems() {
+    return this.state.order.map(this.renderItem);
   }
 
   render() {
+    const {order} = this.state;
+
     return (
-      <div>
-        {this.renderControls()}
-        {this.renderDrawing()}
+      <div className={classes.outer}>
+        <div className={classes.root}>
+          {order.map(this.renderItem)}
+        </div>
       </div>
     );
   }

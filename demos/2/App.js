@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import each from 'lodash/collection/each';
 import map from 'lodash/collection/map';
+import cloneDeep from 'lodash/lang/cloneDeep';
 
 import D3Force from './D3Force';
 import graph from './graph';
@@ -9,9 +10,8 @@ export class App extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      nodesProperties: graph.nodes.map(node => ({fixed: false})),
-    };
+    this.nodes = cloneDeep(graph.nodes);
+    this.links = cloneDeep(graph.links);
   }
 
   handleTick = (e, nodes) => {
@@ -24,25 +24,23 @@ export class App extends Component {
   }
 
   handleClick = (e) => {
-    var index = e.target.getAttribute('data-index');
+    var index = parseInt(e.target.getAttribute('data-index'), 10);
+    var node = this.nodes[index];
 
-    this.setState({
-      nodesProperties: this.state.nodesProperties.map((p, i) =>
-        i !== index ? p : Object.assign({}, p, {fixed: !p.fixed})
-      ),
-    });
+    node.fixed  = !node.fixed;
+    this.forceUpdate();
   }
 
   render() {
     return (
       <D3Force
-       nodes={graph.nodes}
-       // links={graph.links}
-       charge={-40}
-       alpha={1}
-       linkStrength={0.2}
-       nodesProperties={this.state.nodesProperties}
-       onTick={this.handleTick}
+        ref="force"
+        nodes={this.nodes}
+        // links={this.links}
+        charge={-40}
+        alpha={1}
+        linkStrength={0.2}
+        onTick={this.handleTick}
       >
         {
           updatedGraph =>
@@ -68,6 +66,7 @@ export class App extends Component {
               {
                 updatedGraph.nodes.map((d, i) =>
                   <circle
+                    style={{cursor: 'pointer'}}
                     data-index={i}
                     key={i}
                     cx={d.x}
